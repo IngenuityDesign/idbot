@@ -55,10 +55,13 @@ module.exports = function(robot) {
       var phantomjs = require('phantomjs')
       var binPath = phantomjs.path
 
+      var url = msg.match[1];
+
       var childArgs = [
         path.join(path.dirname(__dirname), 'sh/phantomjs-screenshot.js'),
-        'http://google.com/',
-        'sh/test.png'
+        url,
+        'data/tmp.png',
+        '1300px'
       ]
 
       childProcess.execFile(binPath, childArgs, function(err, stdout, stderr) {
@@ -69,7 +72,7 @@ module.exports = function(robot) {
         var filename = Math.floor(Math.random() * 1000000 ) + ".png";
 
         var params = {
-          localFile: "sh/test.png",
+          localFile: "data/tmp.png",
 
           s3Params: {
             ACL: 'public-read',
