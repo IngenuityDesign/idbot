@@ -1,15 +1,17 @@
 // Description:
-//   holiday detector script
+//   Ingenuity Design quality of life changes
 //
 // Dependencies:
-//   None
+//   s3, phantomjs
 //
 // Configuration:
 //   None
 //
 // Commands:
-//   hubot is it weekend ?  - returns whether is it weekend or not
-//   hubot is it holiday ?  - returns whether is it holiday or not
+//   hubot deploy <app>  - deploys <app> if it exists
+//   is ebayinc done?  - tells you the truth
+//   screenshot <webpage>  - takes a screenshot of <webpage> and uploads it to s3. Gives you the link
+//   hubot inspire me  - inspires you with a designer's picture from dribbble
 
 var urlUtil = require('url');
 var screenshot = require('../lib/screenshot');
