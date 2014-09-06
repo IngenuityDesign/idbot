@@ -13,6 +13,7 @@
 
 var urlUtil = require('url');
 var screenshot = require('../lib/screenshot');
+var inspire = require('../lib/dribbble');
 
 var apps = {
   paypalfirst: function(msg,robot) {
@@ -55,5 +56,15 @@ module.exports = function(robot) {
         }
       });
 
+    });
+
+    robot.respond(/inspire me/i, function(msg) {
+      inspire.inspire(robot, function(err, images) {
+        if (err) {
+          msg.reply(err);
+        } else {
+          msg.reply(msg.random(images));
+        }
+      });
     });
 }
