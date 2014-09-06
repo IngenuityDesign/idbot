@@ -11,27 +11,14 @@
 //   hubot is it weekend ?  - returns whether is it weekend or not
 //   hubot is it holiday ?  - returns whether is it holiday or not
 
+var urlUtil = require('url');
+var screenshot = require('../lib/screenshot');
+
 var apps = {
   paypalfirst: function(msg,robot) {
     msg.reply("Done deploying paypalfirst. Enjoy your shiny new software.")
   }
 }
-
-var s3 = require('s3');
-
-var client = s3.createClient({
-  maxAsyncS3: 20,     // this is the default
-  s3RetryCount: 3,    // this is the default
-  s3RetryDelay: 1000, // this is the default
-  multipartUploadThreshold: 20971520, // this is the default (20 MB)
-  multipartUploadSize: 15728640, // this is the default (15 MB)
-  s3Options: {
-    accessKeyId: process.env.S3_ACCESS_KEY,
-    secretAccessKey: process.env.S3_ACCESS_SECRET,
-    // any other options are passed to new AWS.S3()
-    // See: http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Config.html#constructor-property
-  },
-});
 
 module.exports = function(robot) {
     robot.respond(/deploy ([^ ]+)/i, function(msg){
@@ -50,51 +37,23 @@ module.exports = function(robot) {
     });
 
     robot.hear(/screenshot (.*)/i, function(msg) {
-      var path = require('path')
-      var childProcess = require('child_process')
-      var phantomjs = require('phantomjs')
-      var binPath = phantomjs.path
 
-      var url = msg.match[1];
+      var url = urlUtil.parse(msg.match[1]);
 
-      var childArgs = [
-        path.join(path.dirname(__dirname), 'sh/phantomjs-screenshot.js'),
-        url,
-        'data/tmp.png',
-        '1300px'
-      ]
+      if (!url.protocol) {
+        url.protocol = "http:";
+        url.slashes = true;
+      }
 
-      childProcess.execFile(binPath, childArgs, function(err, stdout, stderr) {
-        // handle results
-        if (stderr) {
+      var urlHref = urlUtil.format(url);
 
+      screenshot.toS3(urlHref, function(err,data) {
+        if (err) {
+          msg.reply(err);
+        } else {
+          msg.reply(data);
         }
-        var filename = Math.floor(Math.random() * 1000000 ) + ".png";
+      });
 
-        var params = {
-          localFile: "data/tmp.png",
-
-          s3Params: {
-            ACL: 'public-read',
-            Bucket: "idbot",
-            Key: filename,
-            // other options supported by putObject, except Body and ContentLength.
-            // See: http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putObject-property
-          },
-        };
-        var uploader = client.uploadFile(params);
-        uploader.on('error', function(err) {
-          msg.reply("Couldn't upload the screenshot.")
-        });
-
-        uploader.on('progress', function() {
-          //console.log("progress", uploader.progressMd5Amount,
-          //          uploader.progressAmount, uploader.progressTotal);
-        });
-
-        uploader.on('end', function() {
-          msg.reply(s3.getPublicUrlHttp(params.s3Params.Bucket, params.s3Params.Key));
-        });
-      })
     });
 }
