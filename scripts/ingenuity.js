@@ -39,7 +39,7 @@ module.exports = function(robot) {
       msg.reply("Nope. Never");
     });
 
-    robot.hear(/screenshot (.*)/i, function(msg) {
+    robot.hear(/^screenshot ([^ ]+)/i, function(msg) {
 
       var url = urlUtil.parse(msg.match[1]);
 
