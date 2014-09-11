@@ -24,6 +24,9 @@ var apps = {
 }
 
 module.exports = function(robot) {
+
+    var links = robot.brain.get('links') || {};
+
     robot.respond(/deploy ([^ ]+)/i, function(msg){
         var application = msg.match[1];
         if (apps[application]) {
@@ -69,4 +72,32 @@ module.exports = function(robot) {
         }
       });
     });
+
+    robot.respond(/save link ([^ ]+) ([^ ]+)/i, function(msg) {
+        var room = msg.message.room;
+
+        var endpoint = msg.match[1];
+        var link = msg.match[2];
+
+        if (!links[room]) links[room] = {};
+        links[room][endpoint] = link;
+
+        robot.brain.set('links', links);
+
+        msg.reply("Saved your '"+endpoint+"' link for '" + room + "'");
+    });
+
+    var getlink = function(msg) {
+        var room = msg.message.room;
+        var endpoint = msg.match[2];
+
+        if (!links[room] || !links[room][endpoint]) {
+            
+        } else {
+            msg.reply("Here's the '" + endpoint +"' link for '" + room +"': " + links[room][endpoint] );
+        }
+    }
+
+    robot.hear(/what([']?s| is) the link for ([^ ]+)/i, getlink);
+    robot.hear(/what([']?s| is) the ([^ ]+) link/, getlink);
 }
